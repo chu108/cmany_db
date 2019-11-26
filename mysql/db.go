@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"github.com/chu108/cetcd"
+	_ "github.com/go-sql-driver/mysql"
 	"os"
 	"time"
 )
