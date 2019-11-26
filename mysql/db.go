@@ -4,6 +4,7 @@ import (
 	"cetcd"
 	"database/sql"
 	"encoding/json"
+	"os"
 	"time"
 )
 
@@ -26,7 +27,11 @@ type mysqlConfig struct {
 }
 
 func init() {
-	connStr, err := cetcd.Get("root/database/mysql/master")
+	ETCD_DB_CONF, ok := os.LookupEnv("ETCD_DB_CONF")
+	if !ok {
+		panic("ETCD_DB_CONF not found")
+	}
+	connStr, err := cetcd.Get(ETCD_DB_CONF)
 	if err != nil {
 		panic(err)
 	}
