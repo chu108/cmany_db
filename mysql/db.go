@@ -1,9 +1,9 @@
 package mysql
 
 import (
-	"cetcd"
 	"database/sql"
 	"encoding/json"
+	"github.com/chu108/cetcd"
 	"os"
 	"time"
 )
