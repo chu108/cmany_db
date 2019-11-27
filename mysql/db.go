@@ -3,7 +3,6 @@ package mysql
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"github.com/chu108/cmany_db/etcd"
 	_ "github.com/go-sql-driver/mysql"
 	"time"
@@ -92,7 +91,6 @@ func connByConnByte(connByte []byte) (masterDB, slaveDB *sql.DB, err error) {
 }
 
 func conn(cfg *mysqlConfig) (masterDB, slaveDB *sql.DB, err error) {
-	fmt.Println(cfg)
 	//主库
 	masterDB, err = sql.Open("mysql", cfg.Master.DSN)
 	if err != nil {

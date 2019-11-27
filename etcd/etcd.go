@@ -81,6 +81,6 @@ func (e *etcd) Get(key string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println(string(res.Kvs[0].Value))
 	return res.Kvs[0].Value, nil
 }
