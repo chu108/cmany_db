@@ -18,9 +18,10 @@ type etcd struct {
 	err       error
 }
 
-func (e *etcd) Conn(endpoints ...string) *etcd {
-	e.endpoints = endpoints
-	return e
+func Conn(endpoints ...string) *etcd {
+	etcd := new(etcd)
+	etcd.endpoints = endpoints
+	return etcd
 }
 
 func (e *etcd) Auth(un, up string) *etcd {
@@ -33,14 +34,15 @@ func (e *etcd) Auth(un, up string) *etcd {
 获取ETCD地址列表
 格式：ETCD_ADDR=192.168.1.1:1000,192.168.1.1:1000,192.168.1.1:1000
 */
-func (e *etcd) ConnByEnv(env string) *etcd {
+func ConnByEnv(env string) *etcd {
+	etcd := new(etcd)
 	addr, ok := os.LookupEnv(env)
 	if !ok {
-		e.err = fmt.Errorf("%w", errors.New("ETCD_ADDR not found"))
-		return e
+		etcd.err = fmt.Errorf("%w", errors.New("ETCD_ADDR not found"))
+		return etcd
 	}
-	e.endpoints = strings.Split(strings.TrimSpace(addr), ",")
-	return e
+	etcd.endpoints = strings.Split(strings.TrimSpace(addr), ",")
+	return etcd
 }
 
 /**
