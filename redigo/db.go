@@ -1,6 +1,7 @@
 package redigo
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/chu108/cmany_db/etcd"
@@ -17,57 +18,52 @@ type dbConn struct {
 	MaxIdle   int    `json:"max_idle"`
 }
 
-func ConnByEtcd(dbKey string, endpoints ...string) (pool *redis.Pool, err error) {
+func ConnByEtcd(dbKey string, endpoints ...string) (redis.Conn, error) {
 	connStr, err := etcd.Conn(endpoints...).Get(dbKey)
 	if err != nil {
 		return nil, err
 	}
-	pool, err = connByConnByte(connStr)
-	return
+	return connByConnByte(connStr)
 }
 
-func ConnByEtcdAuth(dbKey, etcdName, etcdPass string, endpoints ...string) (pool *redis.Pool, err error) {
+func ConnByEtcdAuth(dbKey, etcdName, etcdPass string, endpoints ...string) (redis.Conn, error) {
 	connStr, err := etcd.Conn(endpoints...).Auth(etcdName, etcdPass).Get(dbKey)
 	if err != nil {
 		return nil, err
 	}
-	pool, err = connByConnByte(connStr)
-	return
+	return connByConnByte(connStr)
 }
 
-func ConnByEnv(env, dbKey string) (pool *redis.Pool, err error) {
+func ConnByEnv(env, dbKey string) (redis.Conn, error) {
 	connStr, err := etcd.ConnByEnv(env).Get(dbKey)
 	if err != nil {
 		return nil, err
 	}
-	pool, err = connByConnByte(connStr)
-	return
+	return connByConnByte(connStr)
 }
 
-func ConnByStr(host string, port int, password string, dbNumber, maxActive, maxIdle int) (pool *redis.Pool, err error) {
+func ConnByStr(host string, port int, password string) (redis.Conn, error) {
 	cfg := new(dbConn)
 	cfg.Host = host
 	cfg.Port = port
 	cfg.Password = password
-	cfg.DBNumber = dbNumber
-	cfg.MaxActive = maxActive
-	cfg.MaxIdle = maxIdle
+	cfg.DBNumber = 0
+	cfg.MaxActive = 100
+	cfg.MaxIdle = 10
 
-	pool, err = conn(cfg)
-	return
+	return conn(cfg)
 }
 
-func connByConnByte(connByte []byte) (pool *redis.Pool, err error) {
+func connByConnByte(connByte []byte) (redis.Conn, error) {
 	cfg := new(dbConn)
 	if err := json.Unmarshal(connByte, cfg); err != nil {
 		return nil, err
 	}
 
-	pool, err = conn(cfg)
-	return
+	return conn(cfg)
 }
 
-func conn(cfg *dbConn) (*redis.Pool, error) {
+func conn(cfg *dbConn) (redis.Conn, error) {
 	pool := &redis.Pool{
 		Dial: func() (redis.Conn, error) {
 			return redis.Dial(
@@ -90,5 +86,5 @@ func conn(cfg *dbConn) (*redis.Pool, error) {
 		Wait:        true,          //当超过最大连接数 是报错还是等待，true 等待 false 报错
 	}
 
-	return pool, nil
+	return pool.GetContext(context.Background())
 }

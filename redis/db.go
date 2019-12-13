@@ -65,7 +65,7 @@ func connByConnByte(connByte []byte) (client *redis.Client, err error) {
 func conn(cfg *dbConn) (*redis.Client, error) {
 
 	cli := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
+		Addr:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		Password: cfg.Password,
 		DB:       cfg.DBNumber,
 	})
