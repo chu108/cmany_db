@@ -24,13 +24,12 @@ type mysqlConfig struct {
 dbKey etcd存储的数据库连接字符串的key
 endpoints etcd的ip节点列表
 */
-func ConnByEtcd(dbKey string, endpoints ...string) (masterDB, slaveDB *sql.DB, err error) {
+func ConnByEtcd(dbKey string, endpoints ...string) (*sql.DB, *sql.DB, error) {
 	connStr, err := etcd.Conn(endpoints...).Get(dbKey)
 	if err != nil {
 		return nil, nil, err
 	}
-	masterDB, slaveDB, err = connByConnByte(connStr)
-	return
+	return connByConnByte(connStr)
 }
 
 /*
@@ -40,13 +39,12 @@ etcdName etcd用户名
 etcdPass etcd密码
 endpoints etcd的ip节点列表
 */
-func ConnByEtcdAuth(dbKey, etcdName, etcdPass string, endpoints ...string) (masterDB *sql.DB, slaveDB *sql.DB, err error) {
+func ConnByEtcdAuth(dbKey, etcdName, etcdPass string, endpoints ...string) (*sql.DB, *sql.DB, error) {
 	connStr, err := etcd.Conn(endpoints...).Auth(etcdName, etcdPass).Get(dbKey)
 	if err != nil {
 		return nil, nil, err
 	}
-	masterDB, slaveDB, err = connByConnByte(connStr)
-	return
+	return connByConnByte(connStr)
 }
 
 /*
@@ -54,13 +52,12 @@ func ConnByEtcdAuth(dbKey, etcdName, etcdPass string, endpoints ...string) (mast
 env ETCD变量的名称，如ETCD_ADDR=127.0.0.1:2379
 dbKey etcd存储的数据库连接字符串的key
 */
-func ConnByEnv(env, dbKey string) (masterDB *sql.DB, slaveDB *sql.DB, err error) {
+func ConnByEnv(env, dbKey string) (*sql.DB, *sql.DB, error) {
 	connStr, err := etcd.ConnByEnv(env).Get(dbKey)
 	if err != nil {
 		return nil, nil, err
 	}
-	masterDB, slaveDB, err = connByConnByte(connStr)
-	return
+	return connByConnByte(connStr)
 }
 
 /*
@@ -75,9 +72,7 @@ func ConnByStr(dsn string, maxOpen, maxIdle int) (masterDB, slaveDB *sql.DB, err
 	cfg.Master.MaxOpen = maxOpen
 	cfg.Master.MaxIdle = maxIdle
 	cfg.Slave = cfg.Master
-
-	masterDB, slaveDB, err = conn(cfg)
-	return
+	return conn(cfg)
 }
 
 func connByConnByte(connByte []byte) (masterDB, slaveDB *sql.DB, err error) {
@@ -85,9 +80,7 @@ func connByConnByte(connByte []byte) (masterDB, slaveDB *sql.DB, err error) {
 	if err := json.Unmarshal(connByte, cfg); err != nil {
 		return nil, nil, err
 	}
-
-	masterDB, slaveDB, err = conn(cfg)
-	return
+	return conn(cfg)
 }
 
 func conn(cfg *mysqlConfig) (masterDB, slaveDB *sql.DB, err error) {
