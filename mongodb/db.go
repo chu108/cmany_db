@@ -15,6 +15,11 @@ type dbConn struct {
 	DbName string
 }
 
+/*
+通过ETCD方式连接数据库
+dbKey etcd存储的数据库连接字符串的key
+endpoints etcd的ip节点列表
+*/
 func ConnByEtcd(dbKey string, endpoints ...string) (*mongo.Database, error) {
 	connStr, err := etcd.Conn(endpoints...).Get(dbKey)
 	if err != nil {
@@ -23,6 +28,13 @@ func ConnByEtcd(dbKey string, endpoints ...string) (*mongo.Database, error) {
 	return connByConnByte(connStr)
 }
 
+/*
+通过ETCD 授权方式连接数据库
+dbKey etcd存储的数据库连接字符串的key
+etcdName etcd用户名
+etcdPass etcd密码
+endpoints etcd的ip节点列表
+*/
 func ConnByEtcdAuth(dbKey, etcdName, etcdPass string, endpoints ...string) (*mongo.Database, error) {
 	connStr, err := etcd.Conn(endpoints...).Auth(etcdName, etcdPass).Get(dbKey)
 	if err != nil {
@@ -31,6 +43,11 @@ func ConnByEtcdAuth(dbKey, etcdName, etcdPass string, endpoints ...string) (*mon
 	return connByConnByte(connStr)
 }
 
+/*
+通过ENV 变量方式连接数据库
+env ETCD变量的名称，如ETCD_ADDR=127.0.0.1:2379
+dbKey etcd存储的数据库连接字符串的key
+*/
 func ConnByEnv(env, dbKey string) (*mongo.Database, error) {
 	connStr, err := etcd.ConnByEnv(env).Get(dbKey)
 	if err != nil {
@@ -39,6 +56,11 @@ func ConnByEnv(env, dbKey string) (*mongo.Database, error) {
 	return connByConnByte(connStr)
 }
 
+/*
+以字符串的方式连接数据库
+url 地址
+dbName 数据库名称
+*/
 func ConnByStr(url, dbName string) (*mongo.Database, error) {
 	cfg := new(dbConn)
 	cfg.Url = url

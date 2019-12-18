@@ -14,42 +14,60 @@ type dbConn struct {
 	DBNumber int    `json:"db_number"`
 }
 
-func ConnByEtcd(dbKey string, endpoints ...string) (client *redis.Client, err error) {
+/*
+通过ETCD方式连接数据库
+dbKey etcd存储的数据库连接字符串的key
+endpoints etcd的ip节点列表
+*/
+func ConnByEtcd(dbKey string, endpoints ...string) (*redis.Client, error) {
 	connStr, err := etcd.Conn(endpoints...).Get(dbKey)
 	if err != nil {
 		return nil, err
 	}
-	client, err = connByConnByte(connStr)
-	return
+	return connByConnByte(connStr)
 }
 
-func ConnByEtcdAuth(dbKey, etcdName, etcdPass string, endpoints ...string) (client *redis.Client, err error) {
+/*
+通过ETCD 授权方式连接数据库
+dbKey etcd存储的数据库连接字符串的key
+etcdName etcd用户名
+etcdPass etcd密码
+endpoints etcd的ip节点列表
+*/
+func ConnByEtcdAuth(dbKey, etcdName, etcdPass string, endpoints ...string) (*redis.Client, error) {
 	connStr, err := etcd.Conn(endpoints...).Auth(etcdName, etcdPass).Get(dbKey)
 	if err != nil {
 		return nil, err
 	}
-	client, err = connByConnByte(connStr)
-	return
+	return connByConnByte(connStr)
 }
 
-func ConnByEnv(env, dbKey string) (client *redis.Client, err error) {
+/*
+通过ENV 变量方式连接数据库
+env ETCD变量的名称，如ETCD_ADDR=127.0.0.1:2379
+dbKey etcd存储的数据库连接字符串的key
+*/
+func ConnByEnv(env, dbKey string) (*redis.Client, error) {
 	connStr, err := etcd.ConnByEnv(env).Get(dbKey)
 	if err != nil {
 		return nil, err
 	}
-	client, err = connByConnByte(connStr)
-	return
+	return connByConnByte(connStr)
 }
 
-func ConnByStr(host string, port int, password string, dbNumber int) (client *redis.Client, err error) {
+/*
+以字符串的方式连接数据库
+host 主机地址
+port 端口
+password 密码
+*/
+func ConnByStr(host string, port int, password string) (client *redis.Client, err error) {
 	cfg := new(dbConn)
 	cfg.Host = host
 	cfg.Port = port
 	cfg.Password = password
-	cfg.DBNumber = dbNumber
-
-	client, err = conn(cfg)
-	return
+	cfg.DBNumber = 0
+	return conn(cfg)
 }
 
 func connByConnByte(connByte []byte) (client *redis.Client, err error) {
@@ -57,9 +75,7 @@ func connByConnByte(connByte []byte) (client *redis.Client, err error) {
 	if err := json.Unmarshal(connByte, cfg); err != nil {
 		return nil, err
 	}
-
-	client, err = conn(cfg)
-	return
+	return conn(cfg)
 }
 
 func conn(cfg *dbConn) (*redis.Client, error) {
