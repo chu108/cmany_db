@@ -81,6 +81,11 @@ func (e *etcd) Get(key string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if len(res.Kvs) == 0 {
+		return nil, errors.New("key 对应的值为空")
+	}
+
 	fmt.Println(string(res.Kvs[0].Value))
 	return res.Kvs[0].Value, nil
 }
