@@ -69,6 +69,20 @@ func (e *etcd) etcdClient() *clientv3.Client {
 	return cli
 }
 
+/**
+获取ETCD客户端
+*/
+func GetClient(endpoints ...string) *clientv3.Client {
+	return Conn(endpoints...).etcdClient()
+}
+
+/**
+获取ETCD客户端
+*/
+func GetClientByEnv(env string) *clientv3.Client {
+	return ConnByEnv(env).etcdClient()
+}
+
 func (e *etcd) Get(key string) ([]byte, error) {
 	cli := e.etcdClient()
 	if e.err != nil {
