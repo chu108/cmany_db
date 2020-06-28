@@ -15,7 +15,7 @@ var (
 
 const lockKey = "/cmany_db/lock"
 
-func lock(client *clientv3.Client, ttl int64, callBack func() error) (err error) {
+func Lock(client *clientv3.Client, ttl int64, callBack func() error) (err error) {
 	mux.Lock()
 	defer mux.Unlock()
 	//捕获异常
