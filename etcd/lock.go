@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"go.etcd.io/etcd/clientv3"
-	"net"
 	"sync"
 )
 
@@ -32,7 +31,7 @@ func Lock(client *clientv3.Client, callBack func() error) (err error) {
 	txn := kv.Txn(context.TODO())
 	//开始抢锁事务操作
 	txn.If(clientv3.Compare(clientv3.CreateRevision(lockKey), "=", 0)).Then(
-		clientv3.OpPut(lockKey, getIp()),
+		clientv3.OpPut(lockKey, ""),
 	).Else(
 		clientv3.OpGet(lockKey),
 	)
@@ -78,7 +77,7 @@ func LockTtl(client *clientv3.Client, ttl int64, callBack func() error) (err err
 	txn := kv.Txn(context.TODO())
 	//开始抢锁事务操作
 	txn.If(clientv3.Compare(clientv3.CreateRevision(lockKey), "=", 0)).Then(
-		clientv3.OpPut(lockKey, getIp(), clientv3.WithLease(leaseID)),
+		clientv3.OpPut(lockKey, "", clientv3.WithLease(leaseID)),
 	).Else(
 		clientv3.OpGet(lockKey),
 	)
@@ -121,7 +120,7 @@ func LockKeepAlive(client *clientv3.Client, ttl int64, callBack func() error) (e
 	txn := kv.Txn(context.TODO())
 	//开始抢锁事务操作
 	txn.If(clientv3.Compare(clientv3.CreateRevision(lockKey), "=", 0)).Then(
-		clientv3.OpPut(lockKey, getIp(), clientv3.WithLease(leaseID)),
+		clientv3.OpPut(lockKey, "", clientv3.WithLease(leaseID)),
 	).Else(
 		clientv3.OpGet(lockKey),
 	)
@@ -166,20 +165,4 @@ func LockKeepAlive(client *clientv3.Client, ttl int64, callBack func() error) (e
 	} else { //抢锁成功
 		return CreateKvErr
 	}
-}
-
-//获取本地IP
-func getIp() string {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return ""
-	}
-	for _, value := range addrs {
-		if ipnet, ok := value.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
-			}
-		}
-	}
-	return ""
 }
