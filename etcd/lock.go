@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go.etcd.io/etcd/clientv3"
+	"sync"
 )
 
 type EtcdLock struct {
@@ -16,6 +17,7 @@ type EtcdLock struct {
 	ctx       context.Context
 	keepAlive <-chan *clientv3.LeaseKeepAliveResponse
 	lockKey   string
+	lock      sync.Mutex
 }
 
 //初始化锁
@@ -41,7 +43,14 @@ func NewEtcdLock(client *clientv3.Client, ttl int64) (*EtcdLock, error) {
 }
 
 //获取锁
-func (el *EtcdLock) Lock() (bool, error) {
+func (el *EtcdLock) Lock(callBack func() error) error {
+	el.lock.Lock()
+	defer el.lock.Unlock()
+	defer func() {
+		//两个defer用于释放锁
+		el.cancel()
+		el.lease.Revoke(el.ctx, el.leaseID)
+	}()
 	//创建KEY
 	kv := clientv3.NewKV(el.client)
 	el.txn = kv.Txn(context.TODO())
@@ -54,7 +63,7 @@ func (el *EtcdLock) Lock() (bool, error) {
 	//提交事务
 	txnRes, err := el.txn.Commit()
 	if err != nil {
-		return false, err
+		return err
 	}
 	if txnRes.Succeeded { //抢锁成功
 		//续租
@@ -73,15 +82,13 @@ func (el *EtcdLock) Lock() (bool, error) {
 		END:
 		}()
 
-		return true, nil
-	} else { //抢锁成功
-		return false, nil
-	}
-}
+		err = callBack()
+		if err != nil {
+			return err
+		}
 
-//释放锁
-func (el *EtcdLock) UnLock() {
-	//两个defer用于释放锁
-	el.cancel()
-	el.lease.Revoke(el.ctx, el.leaseID)
+		return nil
+	} else { //抢锁成功
+		return nil
+	}
 }
