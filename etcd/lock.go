@@ -40,11 +40,10 @@ func Lock(client *clientv3.Client, callBack func() error) (err error) {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		kv.Delete(context.TODO(), lockKey)
+	}()
 	if txnRes.Succeeded { //抢锁成功
-		defer func() {
-			client.Delete(context.TODO(), lockKey)
-		}()
-
 		err = callBack()
 		if err != nil {
 			return err
