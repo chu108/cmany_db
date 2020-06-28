@@ -15,7 +15,7 @@ var (
 	//leaseID     clientv3.LeaseID
 )
 
-const lockKey = "/cmanydb/lock"
+const lockKey = "/cmany_db/lock"
 
 func Lock(client *clientv3.Client, callBack func() error) (err error) {
 	mux.Lock()
@@ -42,7 +42,7 @@ func Lock(client *clientv3.Client, callBack func() error) (err error) {
 	}
 	if txnRes.Succeeded { //抢锁成功
 		defer func() {
-			kv.Delete(context.TODO(), lockKey)
+			client.Delete(context.TODO(), lockKey)
 		}()
 
 		err = callBack()
