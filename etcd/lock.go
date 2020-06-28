@@ -15,7 +15,7 @@ var (
 	//leaseID     clientv3.LeaseID
 )
 
-const lockKey = "/cmany_db/lock"
+const lockKey = "/cmanydb/lock"
 
 func Lock(client *clientv3.Client, callBack func() error) (err error) {
 	mux.Lock()
