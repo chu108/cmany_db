@@ -42,7 +42,6 @@ func Lock(client *clientv3.Client, ttl int64, callBack func() error) (err error)
 	}
 	if txnRes.Succeeded { //抢锁成功
 		defer func() {
-			//两个defer用于释放锁
 			kv.Delete(context.TODO(), lockKey)
 		}()
 
@@ -51,7 +50,7 @@ func Lock(client *clientv3.Client, ttl int64, callBack func() error) (err error)
 			return err
 		}
 		return nil
-	} else { //抢锁成功
+	} else { //抢锁失败
 		return CreateKvErr
 	}
 }
