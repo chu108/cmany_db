@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/chu108/cmany_db/etcd"
@@ -79,14 +80,14 @@ func connByConnByte(connByte []byte) (client *redis.Client, err error) {
 }
 
 func conn(cfg *dbConn) (*redis.Client, error) {
-
+	ctx := context.Background()
 	cli := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		Password: cfg.Password,
 		DB:       cfg.DBNumber,
 	})
 
-	_, err := cli.Ping().Result()
+	_, err := cli.Ping(ctx).Result()
 	if err != nil {
 		return nil, err
 	}
