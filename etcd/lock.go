@@ -16,8 +16,8 @@ var (
 )
 
 func Lock(client *clientv3.Client, lockKey string, callBack func() error) (err error) {
-	mux.Lock()
-	defer mux.Unlock()
+	//mux.Lock()
+	//defer mux.Unlock()
 	//捕获异常
 	defer func() {
 		if e := recover(); e != nil {
@@ -53,8 +53,8 @@ func Lock(client *clientv3.Client, lockKey string, callBack func() error) (err e
 }
 
 func LockTtl(client *clientv3.Client, lockKey string, ttl int64, callBack func() error) (err error) {
-	mux.Lock()
-	defer mux.Unlock()
+	//mux.Lock()
+	//defer mux.Unlock()
 	//捕获异常
 	defer func() {
 		if e := recover(); e != nil {
@@ -96,8 +96,8 @@ func LockTtl(client *clientv3.Client, lockKey string, ttl int64, callBack func()
 }
 
 func LockKeepAlive(client *clientv3.Client, lockKey string, ttl int64, callBack func() error) (err error) {
-	mux.Lock()
-	defer mux.Unlock()
+	//mux.Lock()
+	//defer mux.Unlock()
 	//捕获异常
 	defer func() {
 		if e := recover(); e != nil {
