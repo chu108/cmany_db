@@ -15,9 +15,7 @@ var (
 	leaseID     clientv3.LeaseID
 )
 
-const lockKey = "/cmany_db/lock"
-
-func Lock(client *clientv3.Client, callBack func() error) (err error) {
+func Lock(client *clientv3.Client, lockKey string, callBack func() error) (err error) {
 	mux.Lock()
 	defer mux.Unlock()
 	//捕获异常
@@ -54,7 +52,7 @@ func Lock(client *clientv3.Client, callBack func() error) (err error) {
 	}
 }
 
-func LockTtl(client *clientv3.Client, ttl int64, callBack func() error) (err error) {
+func LockTtl(client *clientv3.Client, lockKey string, ttl int64, callBack func() error) (err error) {
 	mux.Lock()
 	defer mux.Unlock()
 	//捕获异常
@@ -97,7 +95,7 @@ func LockTtl(client *clientv3.Client, ttl int64, callBack func() error) (err err
 	}
 }
 
-func LockKeepAlive(client *clientv3.Client, ttl int64, callBack func() error) (err error) {
+func LockKeepAlive(client *clientv3.Client, lockKey string, ttl int64, callBack func() error) (err error) {
 	mux.Lock()
 	defer mux.Unlock()
 	//捕获异常
