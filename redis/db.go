@@ -85,6 +85,7 @@ func conn(cfg *dbConn) (*redis.Client, error) {
 		Password:    cfg.Password,
 		DB:          cfg.DBNumber,
 		IdleTimeout: time.Second * 60,
+		MaxRetries:  2,
 	})
 
 	_, err := cli.Ping().Result()
