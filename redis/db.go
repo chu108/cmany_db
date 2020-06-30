@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/chu108/cmany_db/etcd"
 	"github.com/go-redis/redis"
+	"time"
 )
 
 type dbConn struct {
@@ -80,9 +81,10 @@ func connByConnByte(connByte []byte) (client *redis.Client, err error) {
 
 func conn(cfg *dbConn) (*redis.Client, error) {
 	cli := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		Password: cfg.Password,
-		DB:       cfg.DBNumber,
+		Addr:        fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Password:    cfg.Password,
+		DB:          cfg.DBNumber,
+		IdleTimeout: time.Second * 60,
 	})
 
 	_, err := cli.Ping().Result()
