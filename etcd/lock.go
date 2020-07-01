@@ -140,20 +140,21 @@ func LockKeepAlive(client *clientv3.Client, lockKey string, ttl int64, callBack 
 			lease.Revoke(ctx, leaseID)
 		}()
 		//续租
-		go func() {
+		go func(context context.Context) {
 			for {
 				select {
 				case leaseKeepAliveResponse := <-keepAlive:
 					if leaseKeepAliveResponse == nil {
 						fmt.Println("lease fail!")
-						goto END
+						return
 					} else {
 						fmt.Println("get leaseRes", leaseKeepAliveResponse.ID)
 					}
+				case <-context.Done():
+					return
 				}
 			}
-		END:
-		}()
+		}(ctx)
 
 		err = callBack()
 		if err != nil {
