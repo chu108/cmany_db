@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/pkg/errors"
 	"os"
 	"strings"
@@ -81,6 +82,24 @@ func GetClient(endpoints ...string) *clientv3.Client {
 */
 func GetClientByEnv(env string) *clientv3.Client {
 	return ConnByEnv(env).etcdClient()
+}
+
+/**
+检测etcd key是否修改
+*/
+func EtcdWatch(cli *clientv3.Client, kv string) {
+	watcher := clientv3.NewWatcher(cli)
+	watchRespChan := watcher.Watch(context.Background(), kv)
+	for watchResp := range watchRespChan {
+		for _, event := range watchResp.Events {
+			switch event.Type {
+			case mvccpb.PUT:
+				fmt.Println("修改为:", string(event.Kv.Value), "Revision:", event.Kv.CreateRevision, event.Kv.ModRevision)
+			case mvccpb.DELETE:
+				fmt.Println("删除了", "Revision:", event.Kv.ModRevision)
+			}
+		}
+	}
 }
 
 func (e *etcd) Get(key string) ([]byte, error) {
