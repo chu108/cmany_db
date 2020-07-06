@@ -7,6 +7,7 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"os"
 	"sync"
+	"time"
 )
 
 var (
@@ -138,13 +139,16 @@ func LockKeepAlive(client *clientv3.Client, lockKey string, ttl int64, callBack 
 				select {
 				case leaseKeepAliveResponse := <-keepAlive:
 					if leaseKeepAliveResponse == nil {
-						fmt.Fprintf(os.Stderr, "lease fail!")
+						fmt.Fprintf(os.Stderr, "lease fail \n")
 						return
 					} else {
-						fmt.Fprintf(os.Stderr, "get leaseRes")
+						fmt.Fprintf(os.Stderr, "get leaseRes \n")
 					}
 				case <-ctx.Done():
 					return
+				}
+				if ttl > 1 {
+					time.Sleep(time.Second * time.Duration(ttl-1))
 				}
 			}
 		}()
