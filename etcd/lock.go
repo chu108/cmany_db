@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
+	"os"
 	"sync"
 )
 
@@ -38,15 +39,11 @@ func Lock(client *clientv3.Client, lockKey string, callBack func() error) (err e
 	if err != nil {
 		return err
 	}
-	defer func() {
-		kv.Delete(context.TODO(), lockKey)
-	}()
 	if txnRes.Succeeded { //抢锁成功
-		err = callBack()
-		if err != nil {
-			return err
-		}
-		return nil
+		defer func() {
+			kv.Delete(context.TODO(), lockKey)
+		}()
+		return callBack()
 	} else { //抢锁失败
 		return CreateKvErr
 	}
@@ -85,11 +82,7 @@ func LockTtl(client *clientv3.Client, lockKey string, ttl int64, callBack func()
 		return err
 	}
 	if txnRes.Succeeded { //抢锁成功
-		err = callBack()
-		if err != nil {
-			return err
-		}
-		return nil
+		return callBack()
 	} else { //抢锁成功
 		return CreateKvErr
 	}
@@ -145,22 +138,17 @@ func LockKeepAlive(client *clientv3.Client, lockKey string, ttl int64, callBack 
 				select {
 				case leaseKeepAliveResponse := <-keepAlive:
 					if leaseKeepAliveResponse == nil {
-						fmt.Println("lease fail!")
+						fmt.Fprintf(os.Stderr, "lease fail!")
 						return
 					} else {
-						fmt.Println("get leaseRes", leaseKeepAliveResponse.ID)
+						fmt.Fprintf(os.Stderr, "get leaseRes")
 					}
 				case <-ctx.Done():
 					return
 				}
 			}
 		}()
-
-		err = callBack()
-		if err != nil {
-			return err
-		}
-		return nil
+		return callBack()
 	} else { //抢锁成功
 		return CreateKvErr
 	}
