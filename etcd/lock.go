@@ -6,15 +6,11 @@ import (
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
 	"os"
-	"sync"
 	"time"
 )
 
 var (
-	mux         sync.Mutex
 	CreateKvErr = errors.New("Failed to acquire lock")
-	lease       clientv3.Lease
-	leaseID     clientv3.LeaseID
 )
 
 func Lock(client *clientv3.Client, lockKey string, callBack func() error) (err error) {
@@ -60,14 +56,12 @@ func LockTtl(client *clientv3.Client, lockKey string, ttl int64, callBack func()
 		}
 	}()
 	//创建租约
-	if leaseID == 0 {
-		lease = clientv3.NewLease(client)
-		leaseRes, err := lease.Grant(context.TODO(), ttl)
-		if err != nil {
-			return err
-		}
-		leaseID = leaseRes.ID
+	lease := clientv3.NewLease(client)
+	leaseRes, err := lease.Grant(context.TODO(), ttl)
+	if err != nil {
+		return err
 	}
+	leaseID := leaseRes.ID
 	//创建KEY
 	kv := clientv3.NewKV(client)
 	txn := kv.Txn(context.TODO())
@@ -99,14 +93,12 @@ func LockKeepAlive(client *clientv3.Client, lockKey string, ttl int64, callBack 
 		}
 	}()
 	//创建租约
-	if leaseID == 0 {
-		lease = clientv3.NewLease(client)
-		leaseRes, err := lease.Grant(context.TODO(), ttl)
-		if err != nil {
-			return err
-		}
-		leaseID = leaseRes.ID
+	lease := clientv3.NewLease(client)
+	leaseRes, err := lease.Grant(context.TODO(), ttl)
+	if err != nil {
+		return err
 	}
+	leaseID := leaseRes.ID
 	//创建KEY
 	kv := clientv3.NewKV(client)
 	txn := kv.Txn(context.TODO())
